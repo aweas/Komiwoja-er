@@ -50,7 +50,7 @@ int main()
 	int average = 0;
 	int max=INT32_MAX;
 	vector<int> best;
-	double limit = 5000;
+	double limit = 100;
 
 	for (int i = 0; i < limit; i++)
 	{
@@ -90,15 +90,15 @@ vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc
 
 	//Fill new generation with 5 times winner, 3 times 2nd place, 2 times 3rd place, 1 time next 80. Fill rest with rand
 	vector<vector<int>> newEvolution;
-	for (int i = 0; i < 5; i++)
-		newEvolution.push_back(genes[0]);
-	for (int i = 0; i < 3; i++)
-		newEvolution.push_back(genes[1]);
-	for (int i = 0; i < 2; i++)
-		newEvolution.push_back(genes[2]);
 	for (int i = 0; i < 80; i++)
-		newEvolution.push_back(genes[i]);
-	for (int i = 0; i < 10; i++)
+		newEvolution.push_back(genes[0]);
+	//for (int i = 0; i < 3; i++)
+	//	newEvolution.push_back(genes[1]);
+	//for (int i = 0; i < 2; i++)
+	//	newEvolution.push_back(genes[2]);
+	//for (int i = 0; i < 80; i++)
+	//	newEvolution.push_back(genes[i]);
+	for (int i = 0; i < 20; i++)
 		newEvolution.push_back(randPermute());
 
 	//Crossover
