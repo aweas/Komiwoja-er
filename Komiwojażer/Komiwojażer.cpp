@@ -38,13 +38,10 @@ int main()
 		plik >> yLoc[i];
 	}
 
-	for (int i = 0; i < 100; i++)
-		genes.push_back(randPermute());
-
 	vector<int> best;
 	
-	double limit = 1;
-	int repetitions = 1;
+	double generations = 1000;
+	int repetitions = 50;
 	vector<double> score;
 
 	vector<int> bestCopies = { 0,0,0,10,30,50,15,30,45 }; //fill with best option
@@ -59,14 +56,19 @@ int main()
 
 	for (int exp = 0; exp < mutationRate.size(); exp++)
 	{
-		//Restart randomness seed
+		//Restart randomness seed and genes
 		srand(0);
+		genes.clear();
+
+		for (int i = 0; i < 100; i++)
+			genes.push_back(randPermute());
+
 		int average = 0;
 		for (int k = 0; k < repetitions; k++)
 		{
 			int tempMax = 0;
 
-			for (int i = 0; i < limit; i++)
+			for (int i = 0; i < generations; i++)
 				genes = evolve(genes, xLoc, yLoc, bestCopies[exp], twoCopies[exp], threeCopies[exp], restCopies[exp], crossRate[exp], mutationRate[exp]);
 				
 			tempMax = scoreAll(genes, xLoc, yLoc);
@@ -84,7 +86,7 @@ int main()
 		variation /= repetitions;
 
 		printf("\r\t\t\n");
-		printf("Experiment: %i\nBest: %i\nVariation: %df\n", exp, average, variation);
+		printf("Experiment: %i\nBest: %i\nVariation: %f\n", exp, average, variation);
 		score.clear();
 
 		history.push_back(average);
@@ -93,7 +95,7 @@ int main()
 		if ((exp+1) % 3 == 0)
 		{
 			int best = smallest(history);
-			printf("\nBest experiment out of three: %i, average: %i\n", best, history[best]);
+			printf("\nBest experiment out of three: %i, average: %i\n", best+1, history[best]);
 			history.clear();
 
 			if (exp == 8 || exp == 11)
@@ -114,9 +116,10 @@ int main()
 				}
 			}
 		}
-
-		
 	}
+
+	int bestFar = smallest(historyFar);
+	printf("Best experiment so far: %i, average: %i\n", bestFar, historyFar[bestFar]);
 
 	std::cin.get();
 }
