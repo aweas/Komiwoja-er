@@ -14,7 +14,7 @@ double scoreGenes(vector<int> genes, double x[], double y[]);
 vector<int> randPermute();
 double scoreAll(vector<vector<int>> genes, double xLoc[], double yLoc[]);
 vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc[]);
-vector<vector<int>> sort(vector<vector<int>> genes, int scores[]);
+vector<vector<int>> sort(vector<vector<int>> genes, vector<int> scores);
 vector<vector<int>> crossover(vector<vector<int>> genes);
 vector<vector<int>> mutate(vector<vector<int>> genes);
 vector<int> selectBest(vector<vector<int>> genes, double xLoc[], double yLoc[]);
@@ -40,86 +40,92 @@ int main()
 
 	for (int i = 0; i < 100; i++)
 		genes.push_back(randPermute());
-	
-	double score = scoreGenes(genes[0], xLoc, yLoc);
-
-	cout << "Zadanie 1. Odleglosc losowej trasy: ";
-	cout << score << endl;
-	cout << "Zadanie 2. Stan obliczen: " << endl;
 
 	int average = 0;
 	int max=INT32_MAX;
 	vector<int> best;
-	double limit = 100;
+	
+	double limit = 1000;
+	int repetitions = 1;
+	vector<double> score;
 
-	for (int i = 0; i < limit; i++)
+	for (int k = 0; k < repetitions; k++)
 	{
-		genes = evolve(genes, xLoc, yLoc);
-		int tempMax = scoreAll(genes, xLoc, yLoc);
-		if (tempMax < max)
+		int tempMax=0;
+		max = INT32_MAX;
+		for (int i = 0; i < limit; i++)
 		{
-			max = tempMax;
-			best = selectBest(genes, xLoc, yLoc);
+			genes = evolve(genes, xLoc, yLoc);
+			tempMax = scoreAll(genes, xLoc, yLoc);
+			if (tempMax < max)
+			{
+				max = tempMax;
+				best = selectBest(genes, xLoc, yLoc);
+			}
+			if(i%10==0)
+				cout << i << " " << tempMax << "    \r";
 		}
-		if ((int)(i / limit * 100) % 5 == 0)
-			cout << "\r" << (int)(i/limit*100) << "%   ";
+		score.push_back(tempMax);
+		average += tempMax;
+		cout << "\r" << k;
 	}
-	cout << "\r100%" << endl;
-	average = 0;
-	for (int i = 0; i < 100; i++)
-		average += scoreGenes(genes[i], xLoc, yLoc);
-	average /= 100;
-	cout << "Najlepsza odkryta odleglosc: " << max << endl;
-	cout << "Najlepsza odkryta sekwencja miast:" << endl;
-	for (int i = 0; i < 99; i++)
-		cout << best[i] << "->";
-	cout << best[99] << endl;
+	average /= repetitions;
+	double variation=0;
+	for (int i = 0; i < score.size(); i++)
+		variation += (score[i] - average)*(score[i]-average);
+	
+	variation /= repetitions;
+	
+	cout << endl<<"Average score: "<<average << endl;
+	cout << "Variation: "<<variation << endl;
 
 	cin.get();
 }
 
 vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc[])
 {
-	int scores[100], j;
+	vector<int> scores, j;
 
 	for (int i = 0; i < 100; i++)
-		scores[i] = scoreGenes(genes[i], xLoc, yLoc);
+		scores.push_back(scoreGenes(genes[i], xLoc, yLoc));
 
 	//InsertSort by score
 	genes = sort(genes, scores);
 
 	//Fill new generation with 5 times winner, 3 times 2nd place, 2 times 3rd place, 1 time next 80. Fill rest with rand
 	vector<vector<int>> newEvolution;
-	for (int i = 0; i < 80; i++)
+	for (int i = 0; i < 50; i++)
 		newEvolution.push_back(genes[0]);
-	//for (int i = 0; i < 3; i++)
-	//	newEvolution.push_back(genes[1]);
-	//for (int i = 0; i < 2; i++)
-	//	newEvolution.push_back(genes[2]);
-	//for (int i = 0; i < 80; i++)
+	for (int i = 0; i < 30; i++)
+		newEvolution.push_back(genes[1]);
+	for (int i = 0; i < 10; i++)
+		newEvolution.push_back(genes[2]);
+	//for (int i = 0; i < 70; i++)
 	//	newEvolution.push_back(genes[i]);
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 10; i++)
 		newEvolution.push_back(randPermute());
 
 	//Crossover
 	//Each 'speciman' becomes a father. Then each of his genes has 10% chance of being replaced by random mother's gene
-	genes = crossover(genes);
+	newEvolution = crossover(newEvolution);
 
 	//Mutate
-	genes = mutate(genes);
+	newEvolution = mutate(newEvolution);
 
 	return newEvolution;
 }
 
-vector<vector<int>> sort(vector<vector<int>> genes, int scores[])
+vector<vector<int>> sort(vector<vector<int>> genes, vector<int> scores)
 {
 	int j = 0;
+
 	for (int i = 0; i < 100; i++)
 	{
 		j = i;
 		while (j > 0 && scores[j] < scores[j - 1])
 		{
 			swap(genes[j], genes[j - 1]);
+			swap(scores[j], scores[j - 1]);
 			j--;
 		}
 	}
@@ -128,16 +134,19 @@ vector<vector<int>> sort(vector<vector<int>> genes, int scores[])
 
 vector<vector<int>> crossover(vector<vector<int>> genes)
 {
-	for (int i = 0; i < 100; i++)
+	for (int i = 1; i < 100; i++)
 	{
 		vector<int> father = genes[i];
 		vector<int> mother = genes[rand() % 50];
 
+		//1% chance that we insert mother's sequence instead of mothers
 		for (int j = 0; j < 100; j++)
-			if (rand() % 100 < 10)
+			if (rand() % 1000 < 10)
 			{
-				int index = findIndex(father, mother[j]);
-				swap(father[j], father[index]);
+				/*int index = findIndex(father, mother[j]);*/
+				int index = findIndex(mother, father[j]);
+				int index2 = findIndex(father, mother[(index + 1)%100]);
+				swap(father[j], father[index2]);
 			}
 
 		genes[i] = father;
@@ -147,10 +156,10 @@ vector<vector<int>> crossover(vector<vector<int>> genes)
 
 vector<vector<int>> mutate(vector<vector<int>> genes)
 {
-	for (int j = 0; j<100; j++)
+	for (int j = 1; j<100; j++)
 		for (int i = 0; i < 100; i++)
-			if (rand() % 100 < 5)
-				swap(genes[j][i], genes[j][rand() % 100]);
+			if (rand() % 1000 < 10)
+				swap(genes[j][rand()%100], genes[j][rand() % 100]);
 	return genes;
 }
 
@@ -200,10 +209,10 @@ double scoreGenes(vector<int> genes, double xLoc[], double yLoc[])
 
 vector<int> selectBest(vector<vector<int>> genes, double xLoc[], double yLoc[])
 {
-	int scores[100];
+	vector<int> scores;
 
 	for (int i = 0; i < 100; i++)
-		scores[i] = scoreGenes(genes[i], xLoc, yLoc);
+		scores.push_back(scoreGenes(genes[i], xLoc, yLoc));
 
 	//InsertSort by score
 	genes = sort(genes, scores);
