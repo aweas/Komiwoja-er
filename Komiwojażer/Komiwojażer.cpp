@@ -14,7 +14,7 @@ double scoreGenes(vector<int> genes, double x[], double y[]);
 vector<int> randPermute();
 double scoreAll(vector<vector<int>> genes, double xLoc[], double yLoc[]);
 vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc[]);
-vector<vector<int>> sort(vector<vector<int>> genes, int scores[]);
+vector<vector<int>> sort(vector<vector<int>> genes, vector<int> scores);
 vector<vector<int>> crossover(vector<vector<int>> genes);
 vector<vector<int>> mutate(vector<vector<int>> genes);
 vector<int> selectBest(vector<vector<int>> genes, double xLoc[], double yLoc[]);
@@ -111,7 +111,7 @@ vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc
 	return newEvolution;
 }
 
-vector<vector<int>> sort(vector<vector<int>> genes, int scores[])
+vector<vector<int>> sort(vector<vector<int>> genes, vector<int> scores)
 {
 	int j = 0;
 	for (int i = 0; i < 100; i++)
@@ -120,6 +120,7 @@ vector<vector<int>> sort(vector<vector<int>> genes, int scores[])
 		while (j > 0 && scores[j] < scores[j - 1])
 		{
 			swap(genes[j], genes[j - 1]);
+			swap(scores[j], scores[j - 1]);
 			j--;
 		}
 	}
