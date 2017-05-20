@@ -52,7 +52,9 @@ int main()
 	vector<int> best;
 	double limit = 1000;
 	int repetitions = 50;
-	
+
+	srand(1);
+
 	for (int k = 0;k < repetitions;k++)
 	{
 		genes.clear();
