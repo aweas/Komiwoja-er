@@ -24,7 +24,7 @@ int findIndex(vector<int> mother, int value);
 
 int main()
 {
-	srand(2);
+	srand(1);
 
 	fstream plik;
 	plik.open("dane.txt");
