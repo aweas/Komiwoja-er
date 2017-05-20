@@ -173,7 +173,7 @@ void reverse(vector<int> &vec, int start, int end)
 vector<vector<int>> mutate(vector<vector<int>> genes)
 {
 	for (int j = 1; j < 100; j++)
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 100-2; i++)
 			if (rand() % 1000 < 5)
 				reverse(genes[j], i, rand() % 100);
 	return genes;
