@@ -51,7 +51,8 @@ int main()
 	int max=INT32_MAX;
 	vector<int> best;
 	double limit = 10000;
-
+	int repetitions = 50;
+	
 	for (int i = 0; i < limit; i++)
 	{
 		genes = evolve(genes, xLoc, yLoc);
@@ -62,15 +63,19 @@ int main()
 			best = selectBest(genes, xLoc, yLoc);
 		}
 		if ((int)(i / limit * 100) % 5 == 0)
-			cout << "\r" << (int)(i/limit*100) << "%   ";
+			cout << "\r" << (int)(i / limit * 100) << "%   ";
 	}
+
 	cout << "\r100%" << endl;
 	average = 0;
+
 	for (int i = 0; i < 100; i++)
 		average += scoreGenes(genes[i], xLoc, yLoc);
 	average /= 100;
+
 	cout << "Najlepsza odkryta odleglosc: " << max << endl;
 	cout << "Najlepsza odkryta sekwencja miast:" << endl;
+
 	for (int i = 0; i < 99; i++)
 		cout << best[i] << "->";
 	cout << best[99] << endl;
@@ -133,7 +138,7 @@ vector<vector<int>> crossover(vector<vector<int>> genes)
 
 		//1% chance that we insert mother's sequence instead of mothers
 		for (int j = 0; j < 100; j++)
-			if (rand() % 1000 < 25)
+			if (rand() % 1000 < 42)
 			{
 				/*int index = findIndex(father, mother[j]);*/
 				int index = findIndex(mother, father[j]);
@@ -152,8 +157,8 @@ vector<vector<int>> mutate(vector<vector<int>> genes)
 {
 	for (int j = 1; j<100; j++)
 		for (int i = 0; i < 100; i++)
-			if (rand() % 1000 < 10)
-				swap(genes[j][rand() % 100], genes[j][rand() % 100]);
+			if (rand() % 1000 < 10)	
+				swap(genes[j][i], genes[j][rand() % 100]);
 	return genes;
 }
 
