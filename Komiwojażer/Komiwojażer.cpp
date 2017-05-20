@@ -44,12 +44,12 @@ int main()
 	int repetitions = 50;
 	vector<double> score;
 
-	vector<int> bestCopies = { 0,0,0,10,30,50,15,30,45 }; //fill with best option
-	vector<int> twoCopies = { 0,0,0,0,0,0,10,20,30 };
-	vector<int> threeCopies = { 0,0,0,0,0,0,5,10,15 };
-	vector<int> restCopies = { 30,50,80,70,50,30,0,0,0 };
-	vector<int> crossRate = { 10,10,10,10,10,10,10,10,10, 5,20,30 }; //fill with best option
-	vector<int> mutationRate = { 10,10,10,10,10,10,10,10,10, 10,10,10, 5,20,30 };
+	vector<int> bestCopies = { 30 }; //fill with best option
+	vector<int> twoCopies = { 0 };
+	vector<int> threeCopies = { 0 };
+	vector<int> restCopies = { 50 };
+	vector<int> crossRate = { 5,10,20,30 }; //fill with best option
+	vector<int> mutationRate = { 10,10,10,10,10, 10,10,10, 5,20,30 };
 
 	vector<int> history;
 	vector<int> historyFar;
@@ -58,10 +58,11 @@ int main()
 	//bestCopies = 30
 	//twoCopies = 0
 	//threeCopies = 0
-	//crossRate = 5
-	//mutationRate = 10
+	//restCopies = 50
+	//crossRate = ?
+	//mutationRate = ?
 
-	for (int exp = 0; exp < mutationRate.size(); exp++)
+	for (int exp = 0; exp < 1; exp++)
 	{
 		//Restart randomness seed and genes
 		srand(0);
@@ -145,10 +146,6 @@ vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc
 	vector<vector<int>> newEvolution;
 	for (int i = 0; i < bestCopies; i++)
 		newEvolution.push_back(genes[0]);
-	for (int i = 0; i < twoCopies; i++)
-		newEvolution.push_back(genes[1]);
-	for (int i = 0; i < threeCopies; i++)
-		newEvolution.push_back(genes[2]);
 	for (int i = 0; i < restCopies; i++)
 		newEvolution.push_back(genes[i]);
 	for (int i = 0; i < 100-bestCopies-twoCopies-threeCopies-restCopies; i++)
@@ -194,8 +191,10 @@ vector<vector<int>> crossover(vector<vector<int>> genes, int rate)
 			{
 				/*int index = findIndex(father, mother[j]);*/
 				int index = findIndex(mother, father[j]);
-				int index2 = findIndex(father, mother[(index + 1)%100]);
-				swap(father[j], father[index2]);
+				int index2 = findIndex(father, mother[(index + 1) % 100]);
+				int index3 = findIndex(father, mother[(index + 2) % 100]);
+				swap(father[(j + 1) % 100], father[index2]);
+				swap(father[(j + 2) % 100], father[index3]);
 			}
 
 		genes[i] = father;
