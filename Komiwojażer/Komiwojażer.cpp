@@ -88,17 +88,13 @@ vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc
 	//InsertSort by score
 	genes = sort(genes, scores);
 
-	//Fill new generation with 5 times winner, 3 times 2nd place, 2 times 3rd place, 1 time next 80. Fill rest with rand
+	//Fill new generation with 30 times winner and 1 time next 80. Fill rest with rand
 	vector<vector<int>> newEvolution;
-	for (int i = 0; i < 50; i++)
-		newEvolution.push_back(genes[0]);
 	for (int i = 0; i < 30; i++)
-		newEvolution.push_back(genes[1]);
-	for (int i = 0; i < 10; i++)
-		newEvolution.push_back(genes[2]);
-	//for (int i = 0; i < 70; i++)
-	//	newEvolution.push_back(genes[i]);
-	for (int i = 0; i < 10; i++)
+		newEvolution.push_back(genes[0]);
+	for (int i = 0; i < 50; i++)
+		newEvolution.push_back(genes[i]);
+	for (int i = 0; i < 20; i++)
 		newEvolution.push_back(randPermute());
 
 	//Crossover
@@ -137,12 +133,12 @@ vector<vector<int>> crossover(vector<vector<int>> genes)
 
 		//1% chance that we insert mother's sequence instead of mothers
 		for (int j = 0; j < 100; j++)
-			if (rand() % 1000 < 10)
+			if (rand() % 1000 < 5)
 			{
 				/*int index = findIndex(father, mother[j]);*/
 				int index = findIndex(mother, father[j]);
 				int index2 = findIndex(father, mother[(index + 1) % 100]);
-				swap(father[j], father[index2]);
+				swap(father[(j+1)%100], father[index2]);
 			}
 
 		genes[i] = father;
