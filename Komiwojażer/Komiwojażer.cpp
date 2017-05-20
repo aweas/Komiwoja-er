@@ -53,17 +53,23 @@ int main()
 	double limit = 10000;
 	int repetitions = 50;
 	
-	for (int i = 0; i < limit; i++)
+	for (int k = 0;k < repetitions;k++)
 	{
-		genes = evolve(genes, xLoc, yLoc);
-		int tempMax = scoreAll(genes, xLoc, yLoc);
-		if (tempMax < max)
+		genes.clear();
+		for (int i = 0; i < 100; i++)
+			genes.push_back(randPermute());
+		for (int i = 0; i < limit; i++)
 		{
-			max = tempMax;
-			best = selectBest(genes, xLoc, yLoc);
+			genes = evolve(genes, xLoc, yLoc);
+			int tempMax = scoreAll(genes, xLoc, yLoc);
+			if (tempMax < max)
+			{
+				max = tempMax;
+				best = selectBest(genes, xLoc, yLoc);
+			}
+			if ((int)(i / limit * 100) % 5 == 0)
+				cout << "\r" << (int)(i / limit * 100) << "%   ";
 		}
-		if ((int)(i / limit * 100) % 5 == 0)
-			cout << "\r" << (int)(i / limit * 100) << "%   ";
 	}
 
 	cout << "\r100%" << endl;
@@ -153,12 +159,23 @@ vector<vector<int>> crossover(vector<vector<int>> genes)
 	return genes;
 }
 
+void reverse(vector<int> &vec, int start, int end)
+{
+	if (start > end)
+		swap(start, end);
+
+	int limit = end - start;
+
+	for (int i = 0;i < limit / 2;i++)
+		swap(vec[start + i], vec[end - i]);
+}
+
 vector<vector<int>> mutate(vector<vector<int>> genes)
 {
-	for (int j = 1; j<100; j++)
+	for (int j = 1; j < 100; j++)
 		for (int i = 0; i < 100; i++)
-			if (rand() % 1000 < 10)	
-				swap(genes[j][i], genes[j][rand() % 100]);
+			if (rand() % 1000 < 5)
+				reverse(genes[j], i, rand() % 100);
 	return genes;
 }
 
