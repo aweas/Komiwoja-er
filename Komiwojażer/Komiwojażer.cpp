@@ -24,7 +24,7 @@ int findIndex(vector<int> mother, int value);
 
 int main()
 {
-	srand(time(NULL));
+	srand(2);
 
 	fstream plik;
 	plik.open("dane.txt");
@@ -50,7 +50,7 @@ int main()
 	int average = 0;
 	int max=INT32_MAX;
 	vector<int> best;
-	double limit = 10000;
+	double limit = 1000;
 	int repetitions = 50;
 	
 	for (int k = 0;k < repetitions;k++)
