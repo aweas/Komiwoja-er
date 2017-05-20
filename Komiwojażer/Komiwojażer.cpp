@@ -24,7 +24,7 @@ int smallest(vector<int> vec);
 
 int main()
 {
-	srand(0);
+	srand(1);
 
 	fstream plik;
 	plik.open("dane.txt");
@@ -44,12 +44,8 @@ int main()
 	int repetitions = 50;
 	vector<double> score;
 
-	vector<int> bestCopies = { 30 }; //fill with best option
-	vector<int> twoCopies = { 0 };
-	vector<int> threeCopies = { 0 };
-	vector<int> restCopies = { 50 };
-	vector<int> crossRate = { 5,10,20,30 }; //fill with best option
-	vector<int> mutationRate = { 10,10,10,10,10, 10,10,10, 5,20,30 };
+	vector<int> crossRate = { 40,42,44,46,48,50 }; //fill with best option
+	vector<int> mutationRate = { 10,10,10,10,10,10, 5,15,20,25,30,35 };
 
 	vector<int> history;
 	vector<int> historyFar;
@@ -62,11 +58,14 @@ int main()
 	//crossRate = ?
 	//mutationRate = ?
 
-	for (int exp = 0; exp < 1; exp++)
+	int theBestest = INT32_MAX;
+	int bestIndex;
+
+	for (int exp = 0; exp < mutationRate.size(); exp++)
 	{
 		//Restart randomness seed and genes
-		srand(0);
-		genes.clear();
+		srand(1);
+		genes.clear();		
 
 		for (int i = 0; i < 100; i++)
 			genes.push_back(randPermute());
@@ -77,9 +76,16 @@ int main()
 			int tempMax = 0;
 
 			for (int i = 0; i < generations; i++)
-				genes = evolve(genes, xLoc, yLoc, bestCopies[exp], twoCopies[exp], threeCopies[exp], restCopies[exp], crossRate[exp], mutationRate[exp]);
+				genes = evolve(genes, xLoc, yLoc, 30, 0, 0, 50, crossRate[exp], mutationRate[exp]);
 				
 			tempMax = scoreAll(genes, xLoc, yLoc);
+
+			if (tempMax < theBestest)
+			{
+				theBestest = tempMax;
+				bestIndex = exp;
+			}
+
 			score.push_back(tempMax);
 			average += tempMax;
 			printf("\rRepetition: %i \t", k+1);
@@ -92,6 +98,7 @@ int main()
 		for (int i = 0; i < score.size(); i++)
 			variation += (score[i] - average)*(score[i] - average);
 		variation /= repetitions;
+		variation = sqrt(variation);
 
 		printf("\r\t\t\n");
 		printf("Experiment: %i\nBest: %i\nVariation: %f\n", exp, average, variation);
@@ -100,34 +107,37 @@ int main()
 		history.push_back(average);
 		historyFar.push_back(average);
 
-		if ((exp+1) % 3 == 0)
+		if ((exp+1) % 6 == 0)
 		{
 			int best = smallest(history);
-			printf("\nBest experiment out of three: %i, average: %i\n", best+1, history[best]);
+			printf("\nBest experiment out of six: %i, average: %i\n", best+1, history[best]);
 			history.clear();
+			for (int i = 0;i < 6;i++)
+				crossRate.push_back(crossRate[best]);
+			//if (exp == 8 || exp == 11)
+			//{
+			//	int bestFar = smallest(historyFar);
+			//	printf("Best experiment so far: %i, average: %i\n", bestFar, historyFar[bestFar]);
 
-			if (exp == 8 || exp == 11)
-			{
-				int bestFar = smallest(historyFar);
-				printf("Best experiment so far: %i, average: %i\n", bestFar, historyFar[bestFar]);
-
-				for (int i = 0; i < 6 && exp==8; i++)
-				{
-					bestCopies.push_back(bestCopies[bestFar]);
-					twoCopies.push_back(twoCopies[bestFar]);
-					threeCopies.push_back(threeCopies[bestFar]);
-					restCopies.push_back(restCopies[bestFar]);
-				}
-				for (int i = 0; i < 3 && exp == 11; i++)
-				{
-					crossRate.push_back(bestCopies[bestFar]);
-				}
-			}
+			//	for (int i = 0; i < 6 && exp==8; i++)
+			//	{
+			//		bestCopies.push_back(bestCopies[bestFar]);
+			//		twoCopies.push_back(twoCopies[bestFar]);
+			//		threeCopies.push_back(threeCopies[bestFar]);
+			//		restCopies.push_back(restCopies[bestFar]);
+			//	}
+			//	for (int i = 0; i < 3 && exp == 11; i++)
+			//	{
+			//		crossRate.push_back(bestCopies[bestFar]);
+			//	}
+			//}
 		}
 	}
 
 	int bestFar = smallest(historyFar);
-	printf("Best experiment so far: %i, average: %i\n", bestFar, historyFar[bestFar]);
+	printf("Best experiment so far: %i, average: %i\n\n", bestFar, historyFar[bestFar]);
+
+	cout << "Best result: " << theBestest << " for experiment " << bestIndex << endl;
 
 	std::cin.get();
 }
