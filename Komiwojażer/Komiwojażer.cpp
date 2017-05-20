@@ -133,7 +133,7 @@ vector<vector<int>> crossover(vector<vector<int>> genes)
 
 		//1% chance that we insert mother's sequence instead of mothers
 		for (int j = 0; j < 100; j++)
-			if (rand() % 1000 < 5)
+			if (rand() % 1000 < 15)
 			{
 				/*int index = findIndex(father, mother[j]);*/
 				int index = findIndex(mother, father[j]);
