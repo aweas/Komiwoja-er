@@ -54,6 +54,13 @@ int main()
 	vector<int> history;
 	vector<int> historyFar;
 
+	//According to statistics, best results were achieved when:
+	//bestCopies = 30
+	//twoCopies = 0
+	//threeCopies = 0
+	//crossRate = 5
+	//mutationRate = 10
+
 	for (int exp = 0; exp < mutationRate.size(); exp++)
 	{
 		//Restart randomness seed and genes
@@ -74,7 +81,7 @@ int main()
 			tempMax = scoreAll(genes, xLoc, yLoc);
 			score.push_back(tempMax);
 			average += tempMax;
-			printf("\rRepetition: %i \t", k);
+			printf("\rRepetition: %i \t", k+1);
 		}
 
 		//Statistics measuring
