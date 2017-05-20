@@ -44,8 +44,8 @@ int main()
 	int repetitions = 50;
 	vector<double> score;
 
-	vector<int> crossRate = { 40,42,44,46,48,50 }; //fill with best option
-	vector<int> mutationRate = { 10,10,10,10,10,10, 5,15,20,25,30,35 };
+	vector<int> crossRate = { 42,42,42,42,42,42 }; //fill with best option
+	vector<int> mutationRate = { 5,5,5,5,5,5 };
 
 	vector<int> history;
 	vector<int> historyFar;
@@ -55,7 +55,7 @@ int main()
 	//twoCopies = 0
 	//threeCopies = 0
 	//restCopies = 50
-	//crossRate = ?
+	//crossRate = 42
 	//mutationRate = ?
 
 	int theBestest = INT32_MAX;
@@ -212,12 +212,23 @@ vector<vector<int>> crossover(vector<vector<int>> genes, int rate)
 	return genes;
 }
 
+void reverse(vector<int> &vec, int start, int end)
+{
+	if (start > end)
+		swap(start, end);
+
+	int limit = end - start;
+
+	for (int i = 0;i < limit / 2;i++)
+		swap(vec[start+i], vec[end-i]);
+}
+
 vector<vector<int>> mutate(vector<vector<int>> genes, int rate)
 {
-	for (int j = 1; j<100; j++)
-		for (int i = 0; i < 100; i++)
+	for (int j = 1; j < 100; j++)
+		for (int i = 0; i < 100 - 2; i++)
 			if (rand() % 1000 < rate)
-				swap(genes[j][rand()%100], genes[j][rand() % 100]);
+				reverse(genes[j], i, rand() % 100);
 	return genes;
 }
 
