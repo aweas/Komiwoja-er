@@ -8,6 +8,8 @@
 #include <vector>
 #include <ctime>
 
+#define citiesNumber 137
+
 using namespace std;
 
 double scoreGenes(vector<int> genes, double x[], double y[]);
@@ -27,11 +29,11 @@ int main()
 	srand(1);
 
 	fstream plik;
-	plik.open("dane.txt");
-	double xLoc[100], yLoc[100];
+	plik.open("dane2.txt");
+	double xLoc[citiesNumber], yLoc[citiesNumber];
 	vector<vector<int>> genes;
 
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < citiesNumber; i++)
 	{
 		plik >> xLoc[i]; //pozbywamy siê id miasta
 		plik >> xLoc[i];
@@ -45,7 +47,7 @@ int main()
 	vector<double> score;
 
 	vector<int> crossRate = { 42,42,42,42,42,42 }; //fill with best option
-	vector<int> mutationRate = { 5,5,5,5,5,5 };
+	vector<int> mutationRate = { 5 };
 
 	vector<int> history;
 	vector<int> historyFar;
@@ -60,14 +62,16 @@ int main()
 
 	int theBestest = INT32_MAX;
 	int bestIndex;
+	vector<int> bestGenes;
+
 
 	for (int exp = 0; exp < mutationRate.size(); exp++)
 	{
 		//Restart randomness seed and genes
-		srand(1);
+		srand(time(NULL));
 		genes.clear();		
 
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < citiesNumber; i++)
 			genes.push_back(randPermute());
 
 		int average = 0;
@@ -84,6 +88,8 @@ int main()
 			{
 				theBestest = tempMax;
 				bestIndex = exp;
+	
+				bestGenes = selectBest(genes, xLoc, yLoc);
 			}
 
 			score.push_back(tempMax);
@@ -139,6 +145,10 @@ int main()
 
 	cout << "Best result: " << theBestest << " for experiment " << bestIndex << endl;
 
+	for (int i = 0;i < 98;i++)
+		cout << bestGenes[i] << "->";
+	cout << bestGenes[99];
+
 	std::cin.get();
 }
 
@@ -146,7 +156,7 @@ vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc
 {
 	vector<int> scores, j;
 
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < citiesNumber; i++)
 		scores.push_back(scoreGenes(genes[i], xLoc, yLoc));
 
 	//InsertSort by score
@@ -158,7 +168,7 @@ vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc
 		newEvolution.push_back(genes[0]);
 	for (int i = 0; i < restCopies; i++)
 		newEvolution.push_back(genes[i]);
-	for (int i = 0; i < 100-bestCopies-twoCopies-threeCopies-restCopies; i++)
+	for (int i = 0; i < citiesNumber -bestCopies-twoCopies-threeCopies-restCopies; i++)
 		newEvolution.push_back(randPermute());
 
 	//Crossover
@@ -175,7 +185,7 @@ vector<vector<int>> sort(vector<vector<int>> genes, vector<int> scores)
 {
 	int j = 0;
 
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < citiesNumber; i++)
 	{
 		j = i;
 		while (j > 0 && scores[j] < scores[j - 1])
@@ -190,21 +200,21 @@ vector<vector<int>> sort(vector<vector<int>> genes, vector<int> scores)
 
 vector<vector<int>> crossover(vector<vector<int>> genes, int rate)
 {
-	for (int i = 1; i < 100; i++)
+	for (int i = 1; i < citiesNumber; i++)
 	{
 		vector<int> father = genes[i];
 		vector<int> mother = genes[rand() % 50];
 
 		//1% chance that we insert mother's sequence instead of mothers
-		for (int j = 0; j < 100; j++)
+		for (int j = 0; j < citiesNumber; j++)
 			if (rand() % 1000 < rate)
 			{
 				/*int index = findIndex(father, mother[j]);*/
 				int index = findIndex(mother, father[j]);
-				int index2 = findIndex(father, mother[(index + 1) % 100]);
-				int index3 = findIndex(father, mother[(index + 2) % 100]);
-				swap(father[(j + 1) % 100], father[index2]);
-				swap(father[(j + 2) % 100], father[index3]);
+				int index2 = findIndex(father, mother[(index + 1) % citiesNumber]);
+				int index3 = findIndex(father, mother[(index + 2) % citiesNumber]);
+				swap(father[(j + 1) % citiesNumber], father[index2]);
+				swap(father[(j + 2) % citiesNumber], father[index3]);
 			}
 
 		genes[i] = father;
@@ -225,16 +235,16 @@ void reverse(vector<int> &vec, int start, int end)
 
 vector<vector<int>> mutate(vector<vector<int>> genes, int rate)
 {
-	for (int j = 1; j < 100; j++)
-		for (int i = 0; i < 100 - 2; i++)
+	for (int j = 1; j < citiesNumber; j++)
+		for (int i = 0; i < citiesNumber; i++)
 			if (rand() % 1000 < rate)
-				reverse(genes[j], i, rand() % 100);
+				reverse(genes[j], i, rand() % citiesNumber);
 	return genes;
 }
 
 int findIndex(vector<int> vec, int value)
 {
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < citiesNumber; i++)
 		if (vec[i] == value)
 			return i;
 }
@@ -242,7 +252,7 @@ int findIndex(vector<int> vec, int value)
 double scoreAll(vector<vector<int>> genes, double xLoc[], double yLoc[])
 {
 	double max = INT32_MAX;
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < citiesNumber; i++)
 	{
 		int temp = scoreGenes(genes[i], xLoc, yLoc);
 		if (temp < max)
@@ -260,7 +270,7 @@ double scoreGenes(vector<int> genes, double xLoc[], double yLoc[])
 	oldx = xLoc[genes[0]-1];
 	oldy = yLoc[genes[0]-1];
 
-	for (int i = 1; i < 100; i++)
+	for (int i = 1; i < citiesNumber; i++)
 	{
 		x = xLoc[genes[i]-1];
 		y = yLoc[genes[i]-1];
@@ -271,7 +281,7 @@ double scoreGenes(vector<int> genes, double xLoc[], double yLoc[])
 		oldy = y;
 	}
 
-	score += sqrt((xLoc[0] - xLoc[99])*(xLoc[0] - xLoc[99]) + (yLoc[0] - yLoc[99])*(yLoc[0] - yLoc[99]));
+	score += sqrt((xLoc[0] - xLoc[citiesNumber-1])*(xLoc[0] - xLoc[citiesNumber-1]) + (yLoc[0] - yLoc[citiesNumber-1])*(yLoc[0] - yLoc[citiesNumber-1]));
 
 	return score;
 }
@@ -280,7 +290,7 @@ vector<int> selectBest(vector<vector<int>> genes, double xLoc[], double yLoc[])
 {
 	vector<int> scores;
 
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < citiesNumber; i++)
 		scores.push_back(scoreGenes(genes[i], xLoc, yLoc));
 
 	//InsertSort by score
@@ -292,10 +302,10 @@ vector<int> selectBest(vector<vector<int>> genes, double xLoc[], double yLoc[])
 vector<int> randPermute()
 {
 	vector<int> temp;
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < citiesNumber; i++)
 		temp.push_back(i + 1);
-	for (int i = 0; i < 100; i++)
-		swap(temp[rand() % 100], temp[rand() % 100]);
+	for (int i = 0; i < citiesNumber; i++)
+		swap(temp[rand() % citiesNumber], temp[rand() % citiesNumber]);
 	return temp;
 }
 
