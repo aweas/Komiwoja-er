@@ -8,20 +8,20 @@
 #include <vector>
 #include <ctime>
 
-#define citiesNumber 137
+#define citiesNumber 100
 
 using namespace std;
 
 double scoreGenes(vector<int> genes, double x[], double y[]);
 vector<int> randPermute();
 double scoreAll(vector<vector<int>> genes, double xLoc[], double yLoc[]);
-vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc[]);
+vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc[], int bestCopies, int twoCopies, int threeCopies, int restCopies, int crossRate, int mutationRate);
 vector<vector<int>> sort(vector<vector<int>> genes, vector<int> scores);
-vector<vector<int>> crossover(vector<vector<int>> genes);
-vector<vector<int>> mutate(vector<vector<int>> genes);
+vector<vector<int>> crossover(vector<vector<int>> genes, int rate);
+vector<vector<int>> mutate(vector<vector<int>> genes, int rate);
 vector<int> selectBest(vector<vector<int>> genes, double xLoc[], double yLoc[]);
 int findIndex(vector<int> mother, int value);
-
+int smallest(vector<int> vec);
 
 
 int main()
@@ -29,7 +29,7 @@ int main()
 	srand(time(NULL));
 
 	fstream plik;
-	plik.open("dane2.txt");
+	plik.open("dane100.txt");
 	double xLoc[citiesNumber], yLoc[citiesNumber];
 	vector<vector<int>> genes;
 
@@ -40,58 +40,122 @@ int main()
 		plik >> yLoc[i];
 	}
 
-	for (int i = 0; i < citiesNumber; i++)
-		genes.push_back(randPermute());
-	
-	double score = scoreGenes(genes[0], xLoc, yLoc);
-
-	cout << "Zadanie 1. Odleglosc losowej trasy: ";
-	cout << score << endl;
-	cout << "Zadanie 2. Stan obliczen: " << endl;
-
-	int average = 0;
-	int max=INT32_MAX;
 	vector<int> best;
-	double limit = 50000;
-	int repetitions = 1;
+	
+	double generations = 0;
 
-	for (int k = 0;k < repetitions;k++)
-	{
-		genes.clear();
+	double repetitions = 2000;
+	vector<double> score;
+
+	//vector<int> crossRate = { 42,42,42,42,42,42 }; //fill with best option
+	//vector<int> mutationRate = { 5 };
+
+	vector<int> history;
+	vector<int> historyFar;
+
+	//According to statistics, best results were achieved when:
+	//bestCopies = 30
+	//twoCopies = 0
+	//threeCopies = 0
+	//restCopies = 50
+	//crossRate = 42
+	//mutationRate = ?
+
+	int theBestest = INT32_MAX;
+	int bestIndex;
+	vector<int> bestGenes;
+
+
+	//for (int exp = 0; exp < mutationRate.size(); exp++)
+	//{
+		//Restart randomness seed and genes
+		srand(time(NULL));
+		genes.clear();		
+
 		for (int i = 0; i < citiesNumber; i++)
 			genes.push_back(randPermute());
-		for (int i = 0; i < limit; i++)
+
+		int average = 0;
+		for (int k = 0; k < repetitions; k++)
 		{
-			genes = evolve(genes, xLoc, yLoc);
-			int tempMax = scoreAll(genes, xLoc, yLoc);
-			if (tempMax < max)
+			int tempMax = 0;
+
+			//for (int i = 0; i < generations; i++)
+			genes = evolve(genes, xLoc, yLoc, 30, 0, 0, 50, 42, 5);
+				
+			tempMax = scoreAll(genes, xLoc, yLoc);
+
+			if (tempMax < theBestest)
 			{
-				max = tempMax;
-				best = selectBest(genes, xLoc, yLoc);
+				theBestest = tempMax;
+				//bestIndex = exp;
+	
+				bestGenes = selectBest(genes, xLoc, yLoc);
 			}
-			if ((int)(i / limit * 100) % 5 == 0)
-				cout << "\r" << (int)(i / limit * 100) << "%   ";
+
+			score.push_back(tempMax);
+			average += tempMax;
+			int percent = (k+1) / repetitions * 100;
+			if(percent%2==0)
+				printf("\rComputation: %i%c \t", percent,'%');
 		}
-	}
 
-	cout << "\r100%" << endl;
-	average = 0;
+		//Statistics measuring
+		average /= repetitions;
 
-	for (int i = 0; i < citiesNumber; i++)
-		average += scoreGenes(genes[i], xLoc, yLoc);
-	average /= citiesNumber;
+		double variation = 0;
+		for (int i = 0; i < score.size(); i++)
+			variation += (score[i] - average)*(score[i] - average);
+		variation /= repetitions;
+		variation = sqrt(variation);
 
-	cout << "Najlepsza odkryta odleglosc: " << max << endl;
-	cout << "Najlepsza odkryta sekwencja miast:" << endl;
+		printf("\r\t\t\t\n");
+		printf("Average: %i\nVariation: %f\n", average, variation);
+		score.clear();
 
-	for (int i = 0; i < 99; i++)
-		cout << best[i] << "->";
-	cout << best[99] << endl;
+		history.push_back(average);
+		historyFar.push_back(average);
 
-	cin.get();
+		//if ((exp+1) % 6 == 0)
+		//{
+			//int best = smallest(history);
+			//printf("\nBest experiment out of six: %i, average: %i\n", best+1, history[best]);
+			//history.clear();
+			//for (int i = 0;i < 6;i++)
+				//crossRate.push_back(crossRate[best]);
+			//if (exp == 8 || exp == 11)
+			//{
+			//	int bestFar = smallest(historyFar);
+			//	printf("Best experiment so far: %i, average: %i\n", bestFar, historyFar[bestFar]);
+
+			//	for (int i = 0; i < 6 && exp==8; i++)
+			//	{
+			//		bestCopies.push_back(bestCopies[bestFar]);
+			//		twoCopies.push_back(twoCopies[bestFar]);
+			//		threeCopies.push_back(threeCopies[bestFar]);
+			//		restCopies.push_back(restCopies[bestFar]);
+			//	}
+			//	for (int i = 0; i < 3 && exp == 11; i++)
+			//	{
+			//		crossRate.push_back(bestCopies[bestFar]);
+			//	}
+			//}
+		//}
+	//}
+
+	int bestFar = smallest(historyFar);
+	//printf("Best experiment so far: %i, average: %i\n\n", bestFar, historyFar[bestFar]);
+
+	cout << "Best result: " << theBestest << " for experiment " << bestIndex << endl;
+
+	for (int i = 0;i < 98;i++)
+		cout << bestGenes[i] << "->";
+	cout << bestGenes[99];
+
+	std::cin.get();
 }
 
-vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc[])
+vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc[], int bestCopies, int twoCopies, int threeCopies, int restCopies, int crossRate, int mutationRate)
 {
 	vector<int> scores, j;
 
@@ -101,21 +165,21 @@ vector<vector<int>> evolve(vector<vector<int>> genes, double xLoc[], double yLoc
 	//InsertSort by score
 	genes = sort(genes, scores);
 
-	//Fill new generation with 30 times winner and 1 time next 80. Fill rest with rand
+	//Fill new generation with 5 times winner, 3 times 2nd place, 2 times 3rd place, 1 time next 80. Fill rest with rand
 	vector<vector<int>> newEvolution;
-	for (int i = 0; i < 30; i++)
+	for (int i = 0; i < bestCopies; i++)
 		newEvolution.push_back(genes[0]);
-	for (int i = 0; i < 50; i++)
+	for (int i = 0; i < restCopies; i++)
 		newEvolution.push_back(genes[i]);
-	for (int i = 0; i < citiesNumber-80; i++)
+	for (int i = 0; i < citiesNumber -bestCopies-twoCopies-threeCopies-restCopies; i++)
 		newEvolution.push_back(randPermute());
 
 	//Crossover
 	//Each 'speciman' becomes a father. Then each of his genes has 10% chance of being replaced by random mother's gene
-	newEvolution = crossover(newEvolution);
+	newEvolution = crossover(newEvolution, crossRate);
 
 	//Mutate
-	newEvolution = mutate(newEvolution);
+	newEvolution = mutate(newEvolution, mutationRate);
 
 	return newEvolution;
 }
@@ -137,7 +201,7 @@ vector<vector<int>> sort(vector<vector<int>> genes, vector<int> scores)
 	return genes;
 }
 
-vector<vector<int>> crossover(vector<vector<int>> genes)
+vector<vector<int>> crossover(vector<vector<int>> genes, int rate)
 {
 	for (int i = 1; i < citiesNumber; i++)
 	{
@@ -146,7 +210,7 @@ vector<vector<int>> crossover(vector<vector<int>> genes)
 
 		//1% chance that we insert mother's sequence instead of mothers
 		for (int j = 0; j < citiesNumber; j++)
-			if (rand() % 1000 < 42)
+			if (rand() % 1000 < rate)
 			{
 				/*int index = findIndex(father, mother[j]);*/
 				int index = findIndex(mother, father[j]);
@@ -169,14 +233,14 @@ void reverse(vector<int> &vec, int start, int end)
 	int limit = end - start;
 
 	for (int i = 0;i < limit / 2;i++)
-		swap(vec[start + i], vec[end - i]);
+		swap(vec[start+i], vec[end-i]);
 }
 
-vector<vector<int>> mutate(vector<vector<int>> genes)
+vector<vector<int>> mutate(vector<vector<int>> genes, int rate)
 {
 	for (int j = 1; j < citiesNumber; j++)
 		for (int i = 0; i < citiesNumber; i++)
-			if (rand() % 1000 < 5)
+			if (rand() % 1000 < rate)
 				reverse(genes[j], i, rand() % citiesNumber);
 	return genes;
 }
@@ -220,7 +284,7 @@ double scoreGenes(vector<int> genes, double xLoc[], double yLoc[])
 		oldy = y;
 	}
 
-	score += sqrt((xLoc[0] - xLoc[99])*(xLoc[0] - xLoc[99]) + (yLoc[0] - yLoc[99])*(yLoc[0] - yLoc[99]));
+	score += sqrt((xLoc[0] - xLoc[citiesNumber-1])*(xLoc[0] - xLoc[citiesNumber-1]) + (yLoc[0] - yLoc[citiesNumber-1])*(yLoc[0] - yLoc[citiesNumber-1]));
 
 	return score;
 }
@@ -246,4 +310,13 @@ vector<int> randPermute()
 	for (int i = 0; i < citiesNumber; i++)
 		swap(temp[rand() % citiesNumber], temp[rand() % citiesNumber]);
 	return temp;
+}
+
+int smallest(vector<int> vec)
+{
+	int min = vec[0];
+	for (int i = 1; i < vec.size(); i++)
+		if (vec[i] < min)
+			min = vec[i];
+	return findIndex(vec, min);
 }
