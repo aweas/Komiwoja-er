@@ -8,7 +8,7 @@
 #include <vector>
 #include <ctime>
 
-#define citiesNumber 137
+#define citiesNumber 100
 
 using namespace std;
 
@@ -26,10 +26,10 @@ int smallest(vector<int> vec);
 
 int main()
 {
-	srand(1);
+	srand(time(NULL));
 
 	fstream plik;
-	plik.open("dane2.txt");
+	plik.open("dane100.txt");
 	double xLoc[citiesNumber], yLoc[citiesNumber];
 	vector<vector<int>> genes;
 
@@ -42,12 +42,13 @@ int main()
 
 	vector<int> best;
 	
-	double generations = 1000;
-	int repetitions = 50;
+	double generations = 0;
+
+	double repetitions = 2000;
 	vector<double> score;
 
-	vector<int> crossRate = { 42,42,42,42,42,42 }; //fill with best option
-	vector<int> mutationRate = { 5 };
+	//vector<int> crossRate = { 42,42,42,42,42,42 }; //fill with best option
+	//vector<int> mutationRate = { 5 };
 
 	vector<int> history;
 	vector<int> historyFar;
@@ -65,8 +66,8 @@ int main()
 	vector<int> bestGenes;
 
 
-	for (int exp = 0; exp < mutationRate.size(); exp++)
-	{
+	//for (int exp = 0; exp < mutationRate.size(); exp++)
+	//{
 		//Restart randomness seed and genes
 		srand(time(NULL));
 		genes.clear();		
@@ -79,22 +80,24 @@ int main()
 		{
 			int tempMax = 0;
 
-			for (int i = 0; i < generations; i++)
-				genes = evolve(genes, xLoc, yLoc, 30, 0, 0, 50, crossRate[exp], mutationRate[exp]);
+			//for (int i = 0; i < generations; i++)
+			genes = evolve(genes, xLoc, yLoc, 30, 0, 0, 50, 42, 5);
 				
 			tempMax = scoreAll(genes, xLoc, yLoc);
 
 			if (tempMax < theBestest)
 			{
 				theBestest = tempMax;
-				bestIndex = exp;
+				//bestIndex = exp;
 	
 				bestGenes = selectBest(genes, xLoc, yLoc);
 			}
 
 			score.push_back(tempMax);
 			average += tempMax;
-			printf("\rRepetition: %i \t", k+1);
+			int percent = (k+1) / repetitions * 100;
+			if(percent%2==0)
+				printf("\rComputation: %i%c \t", percent,'%');
 		}
 
 		//Statistics measuring
@@ -106,20 +109,20 @@ int main()
 		variation /= repetitions;
 		variation = sqrt(variation);
 
-		printf("\r\t\t\n");
-		printf("Experiment: %i\nBest: %i\nVariation: %f\n", exp, average, variation);
+		printf("\r\t\t\t\n");
+		printf("Average: %i\nVariation: %f\n", average, variation);
 		score.clear();
 
 		history.push_back(average);
 		historyFar.push_back(average);
 
-		if ((exp+1) % 6 == 0)
-		{
-			int best = smallest(history);
-			printf("\nBest experiment out of six: %i, average: %i\n", best+1, history[best]);
-			history.clear();
-			for (int i = 0;i < 6;i++)
-				crossRate.push_back(crossRate[best]);
+		//if ((exp+1) % 6 == 0)
+		//{
+			//int best = smallest(history);
+			//printf("\nBest experiment out of six: %i, average: %i\n", best+1, history[best]);
+			//history.clear();
+			//for (int i = 0;i < 6;i++)
+				//crossRate.push_back(crossRate[best]);
 			//if (exp == 8 || exp == 11)
 			//{
 			//	int bestFar = smallest(historyFar);
@@ -137,11 +140,11 @@ int main()
 			//		crossRate.push_back(bestCopies[bestFar]);
 			//	}
 			//}
-		}
-	}
+		//}
+	//}
 
 	int bestFar = smallest(historyFar);
-	printf("Best experiment so far: %i, average: %i\n\n", bestFar, historyFar[bestFar]);
+	//printf("Best experiment so far: %i, average: %i\n\n", bestFar, historyFar[bestFar]);
 
 	cout << "Best result: " << theBestest << " for experiment " << bestIndex << endl;
 
